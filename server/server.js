@@ -73,7 +73,7 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(200).send({todo});
     })
         .catch((err) => {
-            return res.status(400).send();
+            return res.status(400).send(err);
         });
 });
 
@@ -96,7 +96,7 @@ app.patch('/todos/:id', (req, res) => {
         }
 
         res.send({todo});
-    }).catch(err => res.status(400));
+    }).catch(err => res.status(400).send(err));
 });
 
 app.post('/users', (req,  res) => {
