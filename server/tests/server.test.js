@@ -90,5 +90,21 @@ describe('GET /todos/:id', () => {
                 expect(res.body.todo.text).toBe(todos[0].text);
             })
             .end(done);
-    })
+    });
+
+    it('Should return 404 if todo not found', (done) => {
+        var wrongId = new ObjectID().toHexString();
+
+        request(app)
+            .get(`/todos/${wrongId}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should return 404 for non objects id', (done) => {
+        request(app)
+            .get('/todos/123')
+            .expect(404)
+            .end(done);
+    });
 });
