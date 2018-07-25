@@ -18,6 +18,7 @@ var userScheme = new mongoose.Schema({
         required: true,
         unique: true,
         validate: {
+            isAsync: true,
             validator: validator.isEmail,
             message: "{VALUE} is not a valid email."
         }
@@ -83,7 +84,7 @@ userScheme.pre('save', function (next) {
     var user = this;
 
     if (user.isModified('password')) {
-        bcrypt.getSalt(10, (err, salt) => {
+        bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(user.password, salt, (err, hash) => {
                 user.password = hash;
                 next();
