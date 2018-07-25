@@ -17,7 +17,7 @@ var port = process.env.PORT;
 app.use(bodyParser.json());
 
 var validateId = (ObjectID, res, id) => {
-    if(!ObjectID.isValid(id)) {
+    if (!ObjectID.isValid(id)) {
         return res.status(404).send();
     }
 };
@@ -62,20 +62,20 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', async (req, res) => {
     var id = req.params.id;
 
     validateId(ObjectID, res, id);
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    try {
+        const todo = await Todo.findByIdAndRemove(id);
         if (!todo) {
-            res.status(404).send();
+            return res.status(404).send();
         }
-        return res.status(200).send({todo});
-    })
-        .catch((err) => {
-            return res.status(400).send(err);
-        });
+        res.send({todo});
+    } catch (err) {
+        res.status(400).send();
+    }
 });
 
 app.patch('/todos/:id', (req, res) => {
@@ -88,7 +88,7 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = new Date().getTime();
     } else {
         body.completed = false;
-        body.completedAt= null;
+        body.completedAt = null;
     }
 
     Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
@@ -97,10 +97,12 @@ app.patch('/todos/:id', (req, res) => {
         }
 
         res.send({todo});
-    }).catch(err => res.status(400).send(err));
+    }).catch((err) => {
+        res.status(400).send(err);
+    });
 });
 
-app.post('/users', (req,  res) => {
+app.post('/users', (req, res) => {
     var body = _.pick(req.body, ['email', 'password', 'name']);
 
     var user = new User(body);
