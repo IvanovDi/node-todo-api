@@ -4,6 +4,7 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../model/todo');
+const {User} =  require('./../model/user');
 const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
 beforeEach(populateTodos);
@@ -211,14 +212,43 @@ describe('POST /users', () => {
                 expect(res.headers['x-auth']).toExist();
                 expect(res.body.email).toBe(email);
             })
-            .end(done);
+            .end(async (err) => {
+                if (err) {
+                    return done(err);
+                }
+
+                var user = await User.findOne({email});
+                expect(user).toExist();
+                expect(user.password).toNotBe(password);
+                done();
+            });
     });
 
     it('Should return validation error if request invalid', (done) => {
-
+        request(app)
+            .post('/users')
+            .send({email: 'email@e'})
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.errors.name.message).toBe('Path `name` is required.');
+                expect(res.body.errors.email.message).toBe('email@e is not a valid email.');
+            })
+            .end(done)
     });
 
     it('Should not create a user if email in use', (done) => {
 
+        var name = 'test';
+        var password = 'password';
+        var email = users[0].email;
+
+        request(app)
+            .post('/users')
+            .send({name, password, email})
+            .expect(400)
+            .expect((res) => {
+                expect(res.body.code).toBe(11000);
+            })
+            .end(done);
     });
 });
